@@ -9,6 +9,9 @@ import random
 from google import genai
 from google.genai import types
 
+# Define custom_genai as an alias for genai to maintain compatibility
+import google.genai as custom_genai
+
 import sys
 import os
 # Add the project root to the Python path
@@ -37,26 +40,28 @@ def retry_api_call(retry_function, *args, **kwargs):
     while failures < max_consecutive_failures:
         try:
             return retry_function(*args, **kwargs)
-        except custom_genai.genai_errors.ResourceExhaustedError as e:
-            print(f"⚠️ API quota exceeded: {e}")
-            retry_delay = 60  # Wait longer when quota is exceeded
-            last_exception = e
-        except custom_genai.genai_errors.InternalServerError as e:
-            print(f"⚠️ Server error: {e}")
-            last_exception = e
-        except custom_genai.genai_errors.InvalidArgumentError as e:
-            print(f"⚠️ Invalid argument: {e}")
-            if "safety" in str(e).lower():
-                print("💡 Trying different prompt due to safety concerns")
-                # For safety errors, we might want to try a different approach
-                kwargs['safety_retry'] = True
-            else:
-                # For other invalid arguments, we might need to fix our request
-                print("⚠️ Invalid API argument - check request format")
-                failures += 10  # Increase failures more for invalid arguments
-            last_exception = e
         except Exception as e:
-            print(f"⚠️ Unexpected error: {e}")
+            error_msg = str(e).lower()
+            
+            # Handle different error types based on the error message
+            if 'resource exhausted' in error_msg or 'quota' in error_msg:
+                print(f"⚠️ API quota exceeded: {e}")
+                retry_delay = 60  # Wait longer when quota is exceeded
+            elif 'internal server error' in error_msg or 'server' in error_msg:
+                print(f"⚠️ Server error: {e}")
+            elif 'invalid argument' in error_msg or 'invalid' in error_msg:
+                print(f"⚠️ Invalid argument: {e}")
+                if "safety" in error_msg:
+                    print("💡 Trying different prompt due to safety concerns")
+                    # For safety errors, we might want to try a different approach
+                    kwargs['safety_retry'] = True
+                else:
+                    # For other invalid arguments, we might need to fix our request
+                    print("⚠️ Invalid API argument - check request format")
+                    failures += 10  # Increase failures more for invalid arguments
+            else:
+                print(f"⚠️ Unexpected error: {e}")
+            
             last_exception = e
         
         # Increment failure counter
