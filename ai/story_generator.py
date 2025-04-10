@@ -12,7 +12,6 @@ import datetime
 from PIL import Image as PILImage
 from IPython.display import display
 from google import genai
-import google.generative.genai as custom_genai
 
 from ..config import (STORY_MODEL, SAFETY_SETTINGS, DEFAULT_PROMPT, 
                      MIN_STORY_SEGMENTS, set_api_key)
