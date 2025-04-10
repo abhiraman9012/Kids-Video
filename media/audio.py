@@ -7,7 +7,7 @@ import re
 import json
 import numpy as np
 import soundfile as sf
-from kokoro import kokoro
+from kokoro import KPipeline
 
 import sys
 import os
@@ -31,7 +31,7 @@ def generate_audio_from_text(story_text, output_dir):
     
     try:
         # Initialize Kokoro TTS
-        tts = kokoro.Kokoro()
+        pipeline = KPipeline(lang_code='a')
         
         # Create an audio directory
         audio_dir = os.path.join(output_dir, "audio")
@@ -49,7 +49,15 @@ def generate_audio_from_text(story_text, output_dir):
                 print(f"⏳ Processing audio segment {i+1}/{len(paragraphs)}...")
                 
                 # Generate audio for this paragraph
-                audio_data = tts.speak(paragraph)
+                generator = pipeline(paragraph, voice='af_heart')
+                
+                # Process all audio chunks
+                paragraph_audio = []
+                for _, (gs, ps, audio) in enumerate(generator):
+                    paragraph_audio.append(audio)
+                
+                # Combine all audio chunks
+                audio_data = np.concatenate(paragraph_audio) if paragraph_audio else np.array([])
                 
                 # Create file path for this segment
                 segment_path = os.path.join(audio_dir, f"segment_{i+1:03d}.wav")
