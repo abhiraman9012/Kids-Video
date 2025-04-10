@@ -12,7 +12,12 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-from ..config import DRIVE_CREDENTIALS_FILE_ID
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import DRIVE_CREDENTIALS_FILE_ID
 
 # Create a global session for requests
 session = requests.Session()

@@ -7,9 +7,14 @@ import os
 import time
 import random
 from google import genai
-import google.generative.genai as custom_genai
+from google.genai import types
 
-from ..config import PROMPT_MODEL, SAFETY_SETTINGS, RETRY_DELAY, MAX_CONSECUTIVE_FAILURES
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import PROMPT_MODEL, SAFETY_SETTINGS, RETRY_DELAY, MAX_CONSECUTIVE_FAILURES
 
 def retry_api_call(retry_function, *args, **kwargs):
     """

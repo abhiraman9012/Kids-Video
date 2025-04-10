@@ -13,14 +13,19 @@ from PIL import Image as PILImage
 from IPython.display import display
 from google import genai
 
-from ..config import (STORY_MODEL, SAFETY_SETTINGS, DEFAULT_PROMPT, 
-                     MIN_STORY_SEGMENTS, set_api_key)
-from .prompt_generator import generate_prompt, retry_api_call
-from ..media.audio import generate_audio_from_text
-from ..media.video import create_video_from_images_and_audio
-from ..media.utils import collect_complete_story
-from ..google_drive.uploader import upload_video_to_drive
-from .seo import generate_seo_metadata
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Use absolute imports instead of relative imports
+from config import STORY_MODEL, SAFETY_SETTINGS, DEFAULT_PROMPT, MIN_STORY_SEGMENTS, set_api_key
+from ai.prompt_generator import generate_prompt, retry_api_call
+from media.audio import generate_audio_from_text
+from media.video import create_video_from_images_and_audio
+from media.utils import collect_complete_story
+from google_drive.uploader import upload_video_to_drive
+from ai.seo import generate_seo_metadata
 
 def retry_story_generation(use_prompt_generator=True, prompt_input=DEFAULT_PROMPT):
     """
@@ -278,7 +283,7 @@ def generate(use_prompt_generator=True, prompt_input=DEFAULT_PROMPT):
     metadata = generate_seo_metadata(story_text, image_files, prompt)
     
     # Generate thumbnail 
-    from ..media.video import generate_thumbnail
+    from media.video import generate_thumbnail
     thumbnail_path = generate_thumbnail(image_files, story_text, metadata)
     
     # Upload to Google Drive

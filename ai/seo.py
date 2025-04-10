@@ -8,9 +8,14 @@ import re
 import json
 import datetime
 from google import genai
-import google.generative.genai as custom_genai
+from google.genai import types
 
-from ..config import STORY_MODEL, SAFETY_SETTINGS
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import STORY_MODEL, SAFETY_SETTINGS
 
 def generate_seo_metadata(story_text, image_files, prompt_text):
     """
