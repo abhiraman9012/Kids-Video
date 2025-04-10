@@ -235,6 +235,29 @@ To create the animated workflow diagrams for this README:
    - Use Python's Matplotlib to create animated data flow visualizations
    - Save as GIF and embed in the README
 
+## 🚀 Google Colab Quick Start
+
+Use this single cell to run the entire project in Google Colab:
+
+```python
+# AI-Powered Children's Story Generator - Complete Colab Cell
+
+# Clone the repository
+!git clone https://github.com/abhiraman9012/Kids-Video.git
+%cd Kids-Video
+
+# Install dependencies and FFmpeg
+!pip install -r requirements.txt
+!apt-get update && apt-get install -y ffmpeg
+
+# Run the entire project with one command
+# This handles all steps: Gemini story generation, image creation, 
+# audio narration, video creation, and Google Drive upload
+!python main.py
+```
+
+> **Tip**: In Colab, select Runtime → "Change runtime type" → Hardware accelerator: "T4 GPU" for faster processing
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -244,3 +267,124 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Google Gemini AI](https://deepmind.google/technologies/gemini/) for content generation
 - [Kokoro TTS](https://github.com/ynop/kokoro) for text-to-speech capabilities
 - [FFmpeg](https://ffmpeg.org/) for video processing
+
+## 🔄 Complete Animated Workflow
+
+The following diagram shows the entire process flow with detailed steps and animations:
+
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#597ea2', 'primaryTextColor': '#fff', 'primaryBorderColor': '#597ea2', 'lineColor': '#d3d3d3', 'secondaryColor': '#373a42', 'tertiaryColor': '#2f333a'}}}
+
+flowchart TB
+    classDef input fill:#6a9955,stroke:#529752,color:#fff
+    classDef ai fill:#af5aff,stroke:#9355d9,color:#fff
+    classDef media fill:#4b91ff,stroke:#3a7ad9,color:#fff
+    classDef output fill:#ff7043,stroke:#d95e38,color:#fff
+    classDef storage fill:#4caf50,stroke:#3e9142,color:#fff
+    
+    %% Start and Environment Setup
+    Start(Start) --> EnvSetup{Set API Keys}
+    EnvSetup -->|Success| GDriveTest{Test Google Drive}
+    EnvSetup -->|Failure| ErrorExit[Exit with Error]
+    GDriveTest -->|Success| PromptFlow
+    GDriveTest -->|Failure| PromptFlow
+    
+    subgraph PromptFlow ["Prompt Generation (ai/prompt_generator.py)"]
+        direction TB
+        UserInput["User Input"]:::input --> PromptGen["generate_prompt()"]:::ai
+        PromptGen -->|API Call| GenAI{"Gemini AI
+        PROMPT_MODEL"}:::ai
+        GenAI -->|Retry| GenAI
+        GenAI --> PromptResult["Creative Prompt"]:::output
+    end
+    
+    PromptFlow --> StoryFlow
+    
+    subgraph StoryFlow ["Story Generation (ai/story_generator.py)"]
+        direction TB
+        PromptInput["Prompt"]:::input --> StoryGen["retry_story_generation()"]:::ai
+        StoryGen --> GenStory{"Gemini AI
+        STORY_MODEL"}:::ai
+        GenStory -->|Retry| GenStory
+        GenStory --> RawOutput["Raw AI Output"]:::output
+        RawOutput --> TextProc["collect_complete_story()
+        (media/utils.py)"]:::media
+        TextProc --> StoryText["Clean Story Text"]:::output
+        GenStory --> ImagesOut["Generated Images"]:::output
+    end
+    
+    StoryFlow --> AudioFlow
+    StoryFlow --> SEOFlow
+    
+    subgraph AudioFlow ["Audio Creation (media/audio.py)"]
+        direction TB
+        StoryInput["Story Text"]:::input --> TTSGen["generate_audio_from_text()"]:::media
+        TTSGen --> Kokoro{"Kokoro TTS
+Engine"}:::media
+        Kokoro --> AudioChunks["Audio Segments"]:::media
+        AudioChunks --> AudioMerge["Combine Audio"]:::media
+        AudioMerge --> FinalAudio["Complete Audio File"]:::output
+    end
+    
+    subgraph SEOFlow ["SEO Metadata (ai/seo.py)"]
+        direction TB
+        SEOInput["Story + Images"]:::input --> SEOGen["generate_seo_metadata()"]:::ai
+        SEOGen -->|API Call| SEOAI{"Gemini AI"}:::ai
+        SEOAI -->|Fallback| DefaultSEO["default_seo_metadata()"]:::ai
+        SEOAI --> Metadata["Title, Description, Tags"]:::output
+    end
+    
+    AudioFlow --> VideoFlow
+    SEOFlow --> VideoFlow
+    
+    subgraph VideoFlow ["Video Creation (media/video.py)"]
+        direction TB
+        ImagesIn["Generated Images"]:::input --> VideoGen["create_video_from_images_and_audio()"]:::media
+        AudioIn["Audio File"]:::input --> VideoGen
+        VideoGen --> Effects["Apply Ken Burns
+Zoom/Pan Effects"]:::media
+        Effects --> Transitions["Add Fade
+Transitions"]:::media
+        Transitions --> AudioSync["Sync Audio
+with Images"]:::media
+        AudioSync --> MP4Out["Final MP4 Video"]:::output
+        
+        ImagesIn --> Thumbnail["generate_thumbnail()"]:::media
+        SEOIn["SEO Metadata"]:::input --> Thumbnail
+        Thumbnail --> ThumbOut["Video Thumbnail"]:::output
+    end
+    
+    VideoFlow --> UploadFlow
+    
+    subgraph UploadFlow ["Upload to Google Drive (google_drive/uploader.py)"]
+        direction TB
+        VideoFile["Video File"]:::input --> GDriveUpload["upload_video_to_drive()"]:::storage
+        ThumbFile["Thumbnail"]:::input --> GDriveUpload
+        MetadataFile["SEO Metadata"]:::input --> GDriveUpload
+        GDriveUpload --> GDrive[("Google Drive")]:::storage
+        GDrive --> VideoLink["Shareable Link"]:::output
+    end
+    
+    UploadFlow --> Complete(["Generation Complete"])
+    
+    %% Animation and styling annotations
+    %% Animation sequence: data flows from top to bottom
+    %% Modules highlight in sequence as data passes through
+    %% Retry loops animate with pulsing arrows
+    %% Final upload shows confirmation animation
+```
+
+*Figure 4: Complete animated workflow showing the entire process from initialization to final upload. The animation shows data flowing through each module with retry mechanisms and processing steps.*
+
+This animated diagram illustrates the complete end-to-end workflow:
+
+1. **Environment Setup**: Checks API keys and Google Drive access
+2. **Prompt Generation**: Uses Gemini to create or enhance the story prompt
+3. **Story Generation**: Generates the story text and matching images with built-in retry logic
+4. **Parallel Processing**:
+   - **Audio Creation**: Converts story to speech using Kokoro TTS
+   - **SEO Metadata**: Generates YouTube-friendly titles and descriptions
+5. **Video Creation**: Combines images and audio with professional effects
+6. **Upload**: Sends the completed video to Google Drive with metadata
+
+Each component communicates through well-defined interfaces, making the system modular and maintainable.
